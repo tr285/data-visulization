@@ -1,0 +1,44 @@
+name: Auto Commit Data Visualization
+
+on:
+  push:
+    paths:
+      - "data_visualization/**"
+
+permissions:
+  contents: write
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for Changes
+        id: changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit Changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git add data_visualization/
+          git commit -m "Auto update data visualization"
+
+      - name: Push Changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git push
